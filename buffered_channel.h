@@ -10,7 +10,7 @@
 template<class T>
 class BufferedChannel {
 private:
-    const size_t buffer_size_;         
+    int buffer_size_;         
     std::queue<T> queue_;               
     std::mutex mtx_;                   
     std::condition_variable not_full_;  
@@ -19,7 +19,7 @@ private:
 
 public:
 
-    explicit BufferedChannel(size_t size) : buffer_size_(size), is_closed_(false) {
+    explicit BufferedChannel(int size) : buffer_size_(size), is_closed_(false) {
         if (size == 0) {
             throw std::invalid_argument("Buffer size must be greater than 0");
         }
@@ -32,8 +32,8 @@ public:
         std::unique_lock<std::mutex> lock(mtx_);
 
         not_full_.wait(lock, [this]() {
-            return queue_.size() < buffer_size_ || is_closed_;
-            });
+            return queue_.size() < static_cast<size_t>(buffer_size_) || is_closed_;
+        });
 
         if (is_closed_) {
             throw std::runtime_error("Channel is closed");
@@ -61,7 +61,7 @@ public:
        
         not_full_.notify_one();
 
-        return { value, true };
+        return { std::move(value), true };
     }
 
  
@@ -74,5 +74,6 @@ public:
         not_empty_.notify_all();
     }
 };
+
 
 #endif // BUFFERED_CHANNEL_H
