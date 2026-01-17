@@ -94,7 +94,7 @@ int main() {
     cout << "Block size k (1-" << N << "): ";
     cin >> k;
 
-    if (N < 5 || k < 1 || k > N) {
+    if (N < 5 || k < 1 ||  k > N) {
         cout << "Error input!" << endl;
         return 1;
     }
@@ -142,7 +142,7 @@ int main() {
     }
 
 
-auto end_parallel = high_resolution_clock::now();
+    auto end_parallel = high_resolution_clock::now();
     auto time_parallel = duration_cast<microseconds>(end_parallel - start_parallel);
 
     vector<vector<int>> C_simple(N, vector<int>(N, 0));
@@ -161,7 +161,7 @@ auto end_parallel = high_resolution_clock::now();
         }
     }
 
-    cout << "\n=== RESULTS ===" << endl;
+cout << "\n=== RESULTS ===" << endl;
     cout << "Matrix: " << N << "x" << N << endl;
     cout << "Block: " << k << "x" << k << endl;
     cout << "Blocks count: " << blocks_num << endl;
@@ -182,8 +182,10 @@ auto end_parallel = high_resolution_clock::now();
         cout << "k\tBlocks\tThreads\tTime (us)\tSpeedup" << endl;
         cout << "----------------------------------------------" << endl;
 
-        long long best_time = time_simple.count();
-        int best_k = 1;
+        long long best_time = -1;
+        int best_k = -1;
+        double best_speedup = 0.0;
+        size_t best_threads_count = 0;
 
         vector<int> test_k_values;
         test_k_values.push_back(1);
@@ -230,7 +232,22 @@ auto end_parallel = high_resolution_clock::now();
 
             cout << test_k << "\t" << test_blocks << "\t" << test_threads.size() << "\t"
                  << time_test.count() << "\t\t" << fixed << setprecision(2) << speedup << endl;
+
+            if (best_time == -1 ||
+                 time_test.count() < best_time) {
+                best_time = time_test.count();
+                best_k = test_k;
+                best_speedup = speedup;
+                best_threads_count = test_threads.size();
+            }
         }
+
+        cout << "----------------------------------------------" << endl;
+        cout << "=== BEST CONFIGURATION FOUND ===" << endl;
+        cout << "Optimal block size k: " << best_k << endl;
+        cout << "Total threads used:   " << best_threads_count << endl;
+        cout << "Best time:            " << best_time << " us" << endl;
+        cout << "Max Speedup:          " << fixed << setprecision(2) << best_speedup << " x" << endl;
     }
 
 
